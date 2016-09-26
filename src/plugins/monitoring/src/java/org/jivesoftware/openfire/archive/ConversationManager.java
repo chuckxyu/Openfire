@@ -85,8 +85,8 @@ public class ConversationManager implements Startable, ComponentEventListener{
 
 	private static final String UPDATE_CONVERSATION = "UPDATE ofConversation SET lastActivity=?, messageCount=? WHERE conversationID=?";
 	private static final String UPDATE_PARTICIPANT = "UPDATE ofConParticipant SET leftDate=? WHERE conversationID=? AND bareJID=? AND jidResource=? AND joinedDate=?";
-	private static final String INSERT_MESSAGE = "INSERT INTO ofMessageArchive(messageID, conversationID, fromJID, fromJIDResource, toJID, toJIDResource, sentDate, body, stanza) "
-			+ "VALUES (?,?,?,?,?,?,?,?,?)";
+	private static final String INSERT_MESSAGE = "INSERT INTO ofMessageArchive(messageID, conversationID, fromJID, fromJIDResource, toJID, toJIDResource, sentDate, body, stanza, filtered ) "
+			+ "VALUES (?,?,?,?,?,?,?,?,?,?)";
 	private static final String CONVERSATION_COUNT = "SELECT COUNT(*) FROM ofConversation";
 	private static final String MESSAGE_COUNT = "SELECT COUNT(*) FROM ofMessageArchive";
 	private static final String DELETE_CONVERSATION_1 = "DELETE FROM ofMessageArchive WHERE conversationID=?";
@@ -660,7 +660,7 @@ public class ConversationManager implements Startable, ComponentEventListener{
 	 * @param date
 	 *            date when the message was sent.
 	 */
-	void processMessage(JID sender, JID receiver, String body, String stanza, Date date) {
+	void processMessage(JID sender, JID receiver, String body, String stanza, Date date, Integer filtered) {
 		String conversationKey = getConversationKey(sender, receiver);
 		synchronized (conversationKey.intern()) {
 			Conversation conversation = conversations.get(conversationKey);
@@ -714,7 +714,7 @@ public class ConversationManager implements Startable, ComponentEventListener{
 			if (messageArchivingEnabled) {
 				if (body != null) {
 					/* OF-677 - Workaround to prevent null messages being archived */
-					messageQueue.add(new ArchivedMessage(conversation.getConversationID(), sender, receiver, date, body, stanza, false));
+					messageQueue.add(new ArchivedMessage(conversation.getConversationID(), sender, receiver, date, body, stanza, false, filtered));
 				}
 			}
 			// Notify listeners of the conversation update.
@@ -738,7 +738,7 @@ public class ConversationManager implements Startable, ComponentEventListener{
 	 * @param date
 	 *            date when the message was sent.
 	 */
-	void processRoomMessage(JID roomJID, JID sender, String nickname, String body, Date date) {
+	void processRoomMessage(JID roomJID, JID sender, String nickname, String body, Date date, Integer filtered) {
 		String conversationKey = getRoomConversationKey(roomJID);
 		synchronized (conversationKey.intern()) {
 			Conversation conversation = conversations.get(conversationKey);
@@ -776,7 +776,7 @@ public class ConversationManager implements Startable, ComponentEventListener{
 				JID jid = new JID(roomJID + "/" + nickname);
 				if (body != null) {
 					/* OF-677 - Workaround to prevent null messages being archived */
-					messageQueue.add(new ArchivedMessage(conversation.getConversationID(), sender, jid, date, body, "", false));
+					messageQueue.add(new ArchivedMessage(conversation.getConversationID(), sender, jid, date, body, "", false, filtered));
 				}
 			}
 			// Notify listeners of the conversation update.
@@ -998,8 +998,12 @@ public class ConversationManager implements Startable, ComponentEventListener{
 						pstmt.setString(5, message.getToJID().toBareJID());
 						pstmt.setString(6, message.getToJID().getResource());
 						pstmt.setLong(7, message.getSentDate().getTime());
+						
+						
+						
 						DbConnectionManager.setLargeTextField(pstmt, 8, message.getBody());
 						DbConnectionManager.setLargeTextField(pstmt, 9, message.getStanza());
+						pstmt.setInt(10, message.getFiltered());
 						if (DbConnectionManager.isBatchUpdatesSupported()) {
 							pstmt.addBatch();
 						} else {

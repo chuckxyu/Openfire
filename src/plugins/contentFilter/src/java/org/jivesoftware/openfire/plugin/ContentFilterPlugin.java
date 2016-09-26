@@ -518,7 +518,11 @@ public class ContentFilterPlugin implements Plugin, PacketInterceptor {
 
             // notify admin of violations
             if (contentMatched && violationNotificationEnabled) {
-
+            	((Message)original).addChildElement("filtered", "1");
+            	Log.debug("Content filter XML: " + ((Message)original).toXML());
+            	
+            	
+            	
                 if (Log.isDebugEnabled()) {
                     Log.debug("Content filter: sending violation notification");
                     Log.debug("Content filter: include original msg? "

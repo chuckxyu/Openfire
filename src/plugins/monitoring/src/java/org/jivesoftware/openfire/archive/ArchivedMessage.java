@@ -37,6 +37,7 @@ public class ArchivedMessage {
     private String body;
     private String stanza;
     private boolean roomEvent;
+    private Integer filtered;
 
     /**
      * Creates a new archived message.
@@ -48,7 +49,7 @@ public class ArchivedMessage {
      * @param body the body of the message
      * @param roomEvent true if the message belongs to a room event. Eg. User joined room.
      */
-    public ArchivedMessage(long conversationID, JID fromJID, JID toJID, Date sentDate, String body, boolean roomEvent) {
+    public ArchivedMessage(long conversationID, JID fromJID, JID toJID, Date sentDate, String body, boolean roomEvent, Integer filtered) {
         this.conversationID = conversationID;
         // Convert both JID's to bare JID's so that we don't store resource information.
         this.fromJID = fromJID;
@@ -56,11 +57,13 @@ public class ArchivedMessage {
         this.sentDate = sentDate;
         this.body = body;
         this.roomEvent = roomEvent;
+        this.filtered = filtered;
     }
 
-    public ArchivedMessage(long conversationID, JID fromJID, JID toJID, Date sentDate, String body, String stanza, boolean roomEvent) {
-    	this(conversationID, fromJID, toJID, sentDate, body, roomEvent);
+    public ArchivedMessage(long conversationID, JID fromJID, JID toJID, Date sentDate, String body, String stanza, boolean roomEvent, Integer filtered) {
+    	this(conversationID, fromJID, toJID, sentDate, body, roomEvent, filtered);
     	this.stanza = stanza;
+    	this.filtered = filtered;
     }
 
     /**
@@ -126,4 +129,18 @@ public class ArchivedMessage {
     public boolean isRoomEvent() {
         return roomEvent;
     }
+
+	/**
+	 * @return the filtered
+	 */
+	public Integer getFiltered() {
+		return filtered;
+	}
+
+	/**
+	 * @param filtered the filtered to set
+	 */
+	public void setFiltered(Integer filtered) {
+		this.filtered = filtered;
+	}
 }

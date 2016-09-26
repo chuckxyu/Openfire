@@ -112,7 +112,7 @@ public class GroupConversationInterceptor implements MUCEventListener, Startable
     public void messageReceived(JID roomJID, JID user, String nickname, Message message) {
         // Process this event in the senior cluster member or local JVM when not in a cluster
         if (ClusterManager.isSeniorClusterMember()) {
-            conversationManager.processRoomMessage(roomJID, user, nickname, message.getBody(), new Date());
+            conversationManager.processRoomMessage(roomJID, user, nickname, message.getBody(), new Date(),0);
         }
         else {
             boolean withBody = conversationManager.isRoomArchivingEnabled() && (
@@ -128,7 +128,7 @@ public class GroupConversationInterceptor implements MUCEventListener, Startable
     public void privateMessageRecieved(JID toJID, JID fromJID, Message message) {
         if(message.getBody() != null) {
              if (ClusterManager.isSeniorClusterMember()) {
-                 conversationManager.processMessage(fromJID, toJID, message.getBody(), message.toXML(), new Date());
+                 conversationManager.processMessage(fromJID, toJID, message.getBody(), message.toXML(), new Date(), 0);
              }
              else {
                  ConversationEventsQueue eventsQueue = conversationManager.getConversationEventsQueue();

@@ -70,9 +70,16 @@ public class ArchiveInterceptor implements PacketInterceptor, Startable {
             if (message.getBody() != null) {
                 // Only process messages that are between two users, group chat rooms, or gateways.
                 if (conversationManager.isConversation(message)) {
+                	Integer filtered;
+                	if (message.getChildElement("filtered", "1")!=null) {
+                		filtered = new Integer(1);
+                	} else {
+                		filtered = new Integer(0);
+                	}
+                	
                     // Process this event in the senior cluster member or local JVM when not in a cluster
                     if (ClusterManager.isSeniorClusterMember()) {
-                        conversationManager.processMessage(message.getFrom(), message.getTo(), message.getBody(), message.toXML(), new Date());
+                        conversationManager.processMessage(message.getFrom(), message.getTo(), message.getBody(), message.toXML(), new Date(),filtered);
                     }
                     else {
                         JID sender = message.getFrom();
